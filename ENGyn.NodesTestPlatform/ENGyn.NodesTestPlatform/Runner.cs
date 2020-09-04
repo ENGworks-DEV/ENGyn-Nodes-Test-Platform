@@ -1,4 +1,5 @@
-﻿using ENGyn.NodesTestPlatform.Application.Services;
+﻿using ENGyn.NodesTestPlatform.Providers;
+using ENGyn.NodesTestPlatform.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,63 +8,20 @@ using System.Threading.Tasks;
 
 namespace ENGyn.NodesTestPlatform
 {
-    public class Runner : IRunnerService
+    public class Runner
     {
-        private readonly string prompt = "ENGyn >";
+        private RunnableProvider _runnableProvider;
 
-
-        // Main Execution Loop
-        public void Run()
+        public Runner()
         {
-            while (true)
-            {
-                try
-                {
-                    var consoleInput = ReadFromConsole();
-                    WriteToConsole(consoleInput);
-                }
-                catch (Exception ex)
-                {
-                    WriteToConsole(ex.Message);
-                }
-            }
+            _runnableProvider = new RunnableProvider();
         }
 
-        /// <summary>
-        /// Excecutes the command entered by the user
-        /// </summary>
-        /// <param name="command">Command to execute</param>
-        /// <returns></returns>
-        public string Execute(string command)
+        public void start()
         {
-            return string.Format("Executed the {0} command", command);
-        }
-
-        /// <summary>
-        /// Reads a message from the console.
-        /// </summary>
-        /// <param name="promptMessage">String that contains a message entered on the terminal</param>
-        /// <returns></returns>
-        public string ReadFromConsole(string promptMessage = "")
-        {
-            // Show a prompt, and get input:
-            Console.Write($"{prompt} {promptMessage}");
-            return Console.ReadLine();
-        }
-
-        /// <summary>
-        /// Write a message to prompt on the terminal
-        /// </summary>
-        /// <param name="message">Message to write on terminal</param>
-        /// <param name="color">Foreground color of the message</param>
-        public void WriteToConsole(string message, ConsoleColor color = ConsoleColor.White)
-        {
-            if (message.Length > 0)
-            {
-                Console.ForegroundColor = color;
-                Console.WriteLine(message);
-                Console.ResetColor();
-            }
+            string startArt = DesignArt.CreateArt();
+            _runnableProvider.WriteToConsole(startArt, ConsoleColor.Green);
+            _runnableProvider.Run();
         }
     }
 }

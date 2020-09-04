@@ -11,11 +11,8 @@ namespace ENGyn.NodesTestPlatform
     {
         static void Main(string[] args)
         {
-            string art = DesignArt.CreateArt();
             Runner runner = new Runner();
-
-            runner.WriteToConsole(art, ConsoleColor.Green);
-            runner.Run();
+            runner.start();
         }
     }
 }
