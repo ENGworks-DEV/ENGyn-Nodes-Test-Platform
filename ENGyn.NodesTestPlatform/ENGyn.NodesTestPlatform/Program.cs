@@ -1,7 +1,9 @@
-﻿using ENGyn.NodesTestPlatform.Utils;
+﻿using ENGyn.NodesTestPlatform.Providers;
+using ENGyn.NodesTestPlatform.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,8 +13,9 @@ namespace ENGyn.NodesTestPlatform
     {
         static void Main(string[] args)
         {
-            Runner runner = new Runner();
-            runner.start();
+            Console.Title = typeof(Program).Name;
+            RunnableProvider runnableProvider = new RunnableProvider();
+            runnableProvider.Run();
         }
     }
 }
