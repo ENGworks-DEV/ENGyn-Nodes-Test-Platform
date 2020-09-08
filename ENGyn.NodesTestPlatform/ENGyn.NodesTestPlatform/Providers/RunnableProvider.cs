@@ -1,9 +1,11 @@
 ﻿using ENGyn.NodesTestPlatform.Core;
 using ENGyn.NodesTestPlatform.Models;
 using ENGyn.NodesTestPlatform.Services;
+using ENGyn.NodesTestPlatform.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,40 +13,34 @@ namespace ENGyn.NodesTestPlatform.Providers
 {
     public class RunnableProvider : IRunnableService
     {
-        private readonly string promptMark = "eng > ";
+        private string _art;
+        private Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
+        private CommandsLoader _commandsLoader;
+
+        public RunnableProvider()
+        {
+            _commandsLoader = new CommandsLoader();
+            _commandLibaries = _commandsLoader.LoadAndGetLibraries();
+            _art = DesignArt.CreateArt();
+        }
 
         public void Run()
         {
+            ConsolePrompt.WriteToConsole(_art, ConsoleColor.Green);
+
             while (true)
             {
                 try
                 {
-                    var consoleInput = ReadFromConsole();
+                    var consoleInput = ConsolePrompt.ReadFromConsole();
                     ConsoleCommand consoleCommand = new ConsoleCommand(consoleInput);
-                    Execute(consoleCommand.command);
-                    WriteToConsole(consoleInput);
+                    Execute(consoleCommand.GetCommand());
+                    ConsolePrompt.WriteToConsole(consoleInput);
                 }
                 catch (Exception ex)
                 {
-                    WriteToConsole(ex.Message, ConsoleColor.Yellow);
+                    ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
                 }
-            }
-        }
-
-        public string ReadFromConsole(string promptMessage = "")
-        {
-            // Show a prompt, and get input:
-            Console.Write($"{promptMark} {promptMessage}");
-            return Console.ReadLine();
-        }
-
-        public void WriteToConsole(string message, ConsoleColor color = ConsoleColor.White)
-        {
-            if (message.Length > 0)
-            {
-                Console.ForegroundColor = color;
-                Console.WriteLine(message);
-                Console.ResetColor();
             }
         }
 

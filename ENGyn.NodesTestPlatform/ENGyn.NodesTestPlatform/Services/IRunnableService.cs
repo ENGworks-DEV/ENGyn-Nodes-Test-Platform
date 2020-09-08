@@ -11,7 +11,5 @@ namespace ENGyn.NodesTestPlatform.Services
     {
         void Run();
         string Execute(Command command);
-        void WriteToConsole(string message, ConsoleColor color);
-        string ReadFromConsole(string promptMessage);
     }
 }
