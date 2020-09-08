@@ -12,7 +12,7 @@ namespace ENGyn.NodesTestPlatform.Core
     {
         private readonly string _regexStringsPreservingQuotes = "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
         private readonly string _defaultLibary = "DefaultCommands";
-        public Command command;
+        private Command command;
 
         public ConsoleCommand(string input)
         {
@@ -38,6 +38,11 @@ namespace ENGyn.NodesTestPlatform.Core
             command.Arguments = arguments;
         }
 
+        public Command GetCommand()
+        {
+            return command;
+        }
+
         /// <summary>
         /// Analyze the user input and search defaults commands or third party commands
         /// </summary>
@@ -59,8 +64,10 @@ namespace ENGyn.NodesTestPlatform.Core
         }
 
         /// <summary>
-        /// Analyze user input and search for command arguments
+        /// Check the input string and look for the entered arguments.This includes quoted arguments
         /// </summary>
+        /// <param name="inputArgument">text string containing the arguments to execute a command</param>
+        /// <returns></returns>
         private string ParseArguments(string inputArgument)
         {
             string argument = inputArgument;
