@@ -99,10 +99,6 @@ namespace ENGyn.NodesTestPlatform.Providers
                 throw new ArgumentException(@"Unknown command. Use command 'help' to see commands info");
             }
 
-            // Getting params based on their characteristics
-            var requiredParams = paramInfoList.Where(p => p.IsOptional == false);
-            var optinalParams = paramInfoList.Where(p => p.IsOptional == true);
-
             return "TODO finalize execute";
         }
     }
