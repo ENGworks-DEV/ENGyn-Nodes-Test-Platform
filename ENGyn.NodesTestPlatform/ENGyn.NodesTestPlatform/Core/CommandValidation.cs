@@ -32,20 +32,39 @@ namespace ENGyn.NodesTestPlatform.Core
             }
             return validationResult;
         }
-        
+
         /// <summary>
         /// Validates if the provided arguments count math the number of required arguments
         /// </summary>
         /// <param name="arguments">List of command arguments</param>
-        /// <param name="providedArgumentCount">provided arguments count present on users Command</param>
+        /// <param name="providedArgumentCount">rovided arguments count present on users Commandparam>
+        /// <param name="validationMessage">Exception message (output)</param>
         /// <returns>Bolean flag true if valid otherwise false</returns>
-        public bool ValidateProvidedArgumentsCount(IList<ParameterInfo> arguments, int providedArgumentCount)
+        public bool ValidateProvidedArgumentsCount(IList<ParameterInfo> arguments, int providedArgumentCount, out string validationMessage)
         {
+            var resultFlag = true;
             var requiredArguments = arguments.Where(arg => arg.IsOptional == false);
             var optionalArguments = arguments.Where(arg => arg.IsOptional == true);
             int requiredCount = requiredArguments.Count();
             int optionalCount = optionalArguments.Count();
-            return requiredCount > providedArgumentCount;
+            int totalArgumentCount = requiredCount + optionalCount;
+
+            if(providedArgumentCount > totalArgumentCount)
+            {
+                resultFlag = false;
+                validationMessage = string.Format("This command use a maximum of {0} arguments. {1} Provided", totalArgumentCount, providedArgumentCount);
+            }
+            else if (providedArgumentCount < requiredCount)
+            {
+                resultFlag = false;
+                validationMessage = string.Format("Missing required argument. Use command 'help' to see info");
+            }
+            else
+            {
+                validationMessage = "Valid arguments count";
+            }
+
+            return resultFlag;
         }
     }
 }
