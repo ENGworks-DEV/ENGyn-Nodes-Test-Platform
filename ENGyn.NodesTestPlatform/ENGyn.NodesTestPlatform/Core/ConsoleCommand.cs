@@ -12,7 +12,7 @@ namespace ENGyn.NodesTestPlatform.Core
     {
         private readonly string _regexStringsPreservingQuotes = "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
         private readonly string _defaultLibary = "DefaultCommands";
-        private Command command;
+        private readonly Command command;
 
         /// <summary>
         /// Creates a new console command instance to parse user input and generate a command object well formed
