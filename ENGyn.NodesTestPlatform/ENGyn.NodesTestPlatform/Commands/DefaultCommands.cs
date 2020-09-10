@@ -11,9 +11,9 @@ namespace ENGyn.NodesTestPlatform.Commands
     /// </summary>
     public static class DefaultCommands
     {
-        public static string Test(int id, string data)
+        public static string Test()
         {
-            return string.Format("Test executed to method {0} with data {1}", id, data);
+            return string.Format("Executed method without arguments");
         }
 
         public static string GetDate(DateTime date)
