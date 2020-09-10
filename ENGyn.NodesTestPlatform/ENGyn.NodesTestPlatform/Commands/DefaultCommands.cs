@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ENGyn.NodesTestPlatform.Commands
 {
+    /// <summary>
+    /// This class contains all the methods that correspond to each command that can be executed from the application.
+    /// </summary>
     public static class DefaultCommands
     {
         public static string Test(int id, string data)

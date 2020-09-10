@@ -14,20 +14,28 @@ namespace ENGyn.NodesTestPlatform.Core
         private readonly string _defaultLibary = "DefaultCommands";
         private Command command;
 
+        /// <summary>
+        /// Creates a new console command instance to parse user input and generate a command object well formed
+        /// </summary>
+        /// <param name="input"></param>
         public ConsoleCommand(string input)
         {
+            // Regular expresion that split string by whitespaces, respecting quoted text ie: "quoted text"
+            // quoted text will be passed as an entire element
             string[] inputArray = Regex.Split(input, _regexStringsPreservingQuotes);
             List<string> arguments = new List<string>();
             command = new Command();
 
             for (int index = 0; index < inputArray.Length; index++)
             {
+                // First element is the command
                 if (index == 0)
                 {
                     var commands = ParseDefaultCommand(inputArray[index]);
                     command.Name = commands.Item1;
                     command.LibraryClassName = commands.Item2;
                 }
+                // Other elements are arguments
                 else
                 {
                     string argument = ParseArguments(inputArray[index]);
@@ -38,13 +46,17 @@ namespace ENGyn.NodesTestPlatform.Core
             command.Arguments = arguments;
         }
 
+        /// <summary>
+        /// Obtain a command object with the input info provided by the user
+        /// </summary>
+        /// <returns>Command object with parsed user input</returns>
         public Command GetCommand()
         {
             return command;
         }
 
         /// <summary>
-        /// Analyze the user input and search defaults commands or third party commands
+        /// Analyze the user input and search defaults commands or third party commands using dot notation "Library.CommandName"
         /// </summary>
         private (string, string) ParseDefaultCommand(string inputCommand)
         {
