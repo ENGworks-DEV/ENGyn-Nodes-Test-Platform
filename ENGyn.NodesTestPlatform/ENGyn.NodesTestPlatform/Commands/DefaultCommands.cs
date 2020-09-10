@@ -16,9 +16,14 @@ namespace ENGyn.NodesTestPlatform.Commands
             return string.Format("Executed method without arguments");
         }
 
-        public static string GetDate(DateTime date)
+        public static void Clear()
         {
-            return string.Format("Date and time is: {0}", date);
+            Console.Clear();
+        }
+        
+        public static void Exit()
+        {
+            Environment.Exit(0);
         }
     }
 }
