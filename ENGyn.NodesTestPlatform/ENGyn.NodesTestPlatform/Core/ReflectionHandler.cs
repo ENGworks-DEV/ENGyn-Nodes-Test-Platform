@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ENGyn.NodesTestPlatform.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace ENGyn.NodesTestPlatform.Core
 {
-    public class CommandsLoader
+    public class ReflectionHandler
     {
-        private readonly string _defaultNamespace = "ENGyn.NodesTestPlatform.Commands";
-        private Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
+        private readonly string _commandsNamespace = "ENGyn.NodesTestPlatform.Commands";
+        private readonly Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
         
-        public CommandsLoader()
+        public ReflectionHandler()
         {
             _commandLibaries = new Dictionary<string, Dictionary<string, IList<ParameterInfo>>>();
         }
@@ -24,8 +25,8 @@ namespace ENGyn.NodesTestPlatform.Core
         public Dictionary<string, Dictionary<string, IList<ParameterInfo>>> LoadAndGetLibraries()
         {
             var types = from t in Assembly.GetExecutingAssembly().GetTypes()
-                    where t.IsClass && t.Namespace == _defaultNamespace
-                    select t;
+                    where t.IsClass && t.Namespace == _commandsNamespace
+                        select t;
             var commandClasses = types.ToList();
 
             foreach (var commandClass in commandClasses)
