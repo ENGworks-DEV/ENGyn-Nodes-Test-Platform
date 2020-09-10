@@ -26,7 +26,7 @@ namespace ENGyn.NodesTestPlatform.Core
                     args
                 );
 
-                return result.ToString();
+                return (result != null) ? result.ToString() : string.Empty;
             }
             catch (TargetInvocationException ex)
             {
