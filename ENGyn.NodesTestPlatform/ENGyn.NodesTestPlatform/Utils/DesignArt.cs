@@ -30,6 +30,10 @@ namespace ENGyn.NodesTestPlatform.Utils
             sb.AppendLine();
             sb.Append("-------------------------------------------------------------------").AppendLine();
 
+            sb.AppendLine();
+            sb.Append("ENGworks. INC. All rights reserved");
+            sb.AppendLine();
+
             string startupArt = sb.ToString();
             return startupArt;
         }
