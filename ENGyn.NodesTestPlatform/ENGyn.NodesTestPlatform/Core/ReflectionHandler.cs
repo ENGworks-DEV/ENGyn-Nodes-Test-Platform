@@ -43,5 +43,33 @@ namespace ENGyn.NodesTestPlatform.Core
             }
             return _commandLibaries;
         }
+
+        /// <summary>
+        /// Invoke an existing method in a loaded class using reflecion  
+        /// </summary>
+        /// <param name="userCommand">Command object provided by user input</param>
+        /// <param name="args">Command arguments</param>
+        /// <returns>The result of execution as string</returns>
+        public string InvokeConsoleCommand(Command userCommand, object[] args)
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Type commandLibraryClass = assembly.GetType($"{_commandsNamespace}.{userCommand.LibraryClassName}");
+
+            try
+            {
+                var result = commandLibraryClass.InvokeMember(
+                    userCommand.Name,
+                    BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
+                    null, null,
+                    args
+                );
+
+                return (result != null) ? result.ToString() : string.Empty;
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException;
+            }
+        }
     }
 }
