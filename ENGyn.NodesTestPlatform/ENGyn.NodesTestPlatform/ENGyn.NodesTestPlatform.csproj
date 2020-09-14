@@ -66,7 +66,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\DefaultCommands.cs" />
-    <Compile Include="Core\CommandHandler.cs" />
     <Compile Include="Core\ReflectionHandler.cs" />
     <Compile Include="Core\CommandValidation.cs" />
     <Compile Include="Core\ConsoleCommand.cs" />
