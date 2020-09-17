@@ -66,13 +66,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\DefaultCommands.cs" />
-    <Compile Include="Core\ReflectionHandler.cs" />
-    <Compile Include="Core\CommandValidation.cs" />
+    <Compile Include="Providers\ReflectionProvider.cs" />
+    <Compile Include="Providers\CommandValidatorProvider.cs" />
     <Compile Include="Core\ConsoleCommand.cs" />
     <Compile Include="Models\Command.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\RunnableProvider.cs" />
+    <Compile Include="Services\ICommandValidationService.cs" />
+    <Compile Include="Services\IReflectionHandlerService.cs" />
     <Compile Include="Services\IRunnableService.cs" />
     <Compile Include="Utils\ParserHelper.cs" />
     <Compile Include="Utils\ConsolePrompt.cs" />
