@@ -7,12 +7,12 @@ using System.Reflection;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
-    public class ReflectionHandler : IReflectionHandlerService
+    public class ReflectionProvider : IReflectionService
     {
         private readonly string _commandsNamespace = "ENGyn.NodesTestPlatform.Commands";
         private readonly Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
         
-        public ReflectionHandler()
+        public ReflectionProvider()
         {
             _commandLibaries = new Dictionary<string, Dictionary<string, IList<ParameterInfo>>>();
         }

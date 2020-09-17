@@ -8,7 +8,7 @@ namespace ENGyn.NodesTestPlatform.Providers
     /// <summary>
     /// Contains all the methods used to validate Command inputs provided by the user
     /// </summary>
-    public class CommandValidation : ICommandValidationService
+    public class CommandValidatorProvider : ICommandValidatorService
     {
         /// <summary>
         /// Validates if given a commandsLibrary dictionary, contains the provided libraryName and command name

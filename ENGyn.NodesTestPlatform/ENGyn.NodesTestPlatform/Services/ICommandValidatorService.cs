@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace ENGyn.NodesTestPlatform.Services
 {
-    public interface ICommandValidationService
+    public interface ICommandValidatorService
     {
         bool ValidateLibraryCommand<T>(Dictionary<string, Dictionary<string, T>> commandsLibrary, string libraryName, string commandName);
-        bool ValidateProvidedArgumentsCount(IList<ParameterInfo> arguments, int providedArgumentCount, out string validationMessage)
+        bool ValidateProvidedArgumentsCount(IList<ParameterInfo> arguments, int providedArgumentCount, out string validationMessage);
     }
 }

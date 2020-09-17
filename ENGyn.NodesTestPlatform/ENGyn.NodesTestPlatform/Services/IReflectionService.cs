@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace ENGyn.NodesTestPlatform.Services
 {
-    public interface IReflectionHandlerService
+    public interface IReflectionService
     {
         Dictionary<string, Dictionary<string, IList<ParameterInfo>>> LoadAndGetLibraries();
         string InvokeConsoleCommand(Command userCommand, object[] args);

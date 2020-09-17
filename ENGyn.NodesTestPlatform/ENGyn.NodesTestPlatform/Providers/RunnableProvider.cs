@@ -12,14 +12,14 @@ namespace ENGyn.NodesTestPlatform.Providers
     public class RunnableProvider : IRunnableService
     {
         private readonly string _art;
-        private readonly IReflectionHandlerService _reflectionHandler;
-        private readonly CommandValidation _commandValidation;
+        private readonly IReflectionService _reflectionHandler;
+        private readonly ICommandValidatorService _commandValidation;
         private readonly Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
 
         public RunnableProvider()
         {
-            _commandValidation = new CommandValidation();
-            _reflectionHandler = new ReflectionHandler();
+            _commandValidation = new CommandValidatorProvider();
+            _reflectionHandler = new ReflectionProvider();
             _commandLibaries = _reflectionHandler.LoadAndGetLibraries();
             _art = DesignArt.CreateArt();
         }
