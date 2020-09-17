@@ -1,17 +1,14 @@
-﻿using ENGyn.NodesTestPlatform.Models;
-using System;
+﻿using ENGyn.NodesTestPlatform.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ENGyn.NodesTestPlatform.Core
+namespace ENGyn.NodesTestPlatform.Providers
 {
     /// <summary>
     /// Contains all the methods used to validate Command inputs provided by the user
     /// </summary>
-    public class CommandValidation
+    public class CommandValidation : ICommandValidationService
     {
         /// <summary>
         /// Validates if given a commandsLibrary dictionary, contains the provided libraryName and command name

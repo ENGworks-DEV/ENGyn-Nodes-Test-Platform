@@ -6,15 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
     public class RunnableProvider : IRunnableService
     {
         private readonly string _art;
-        private readonly ReflectionHandler _reflectionHandler;
+        private readonly IReflectionHandlerService _reflectionHandler;
         private readonly CommandValidation _commandValidation;
         private readonly Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
 

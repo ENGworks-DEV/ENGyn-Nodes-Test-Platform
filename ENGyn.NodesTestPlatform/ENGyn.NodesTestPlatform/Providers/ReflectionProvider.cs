@@ -1,14 +1,13 @@
 ﻿using ENGyn.NodesTestPlatform.Models;
+using ENGyn.NodesTestPlatform.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ENGyn.NodesTestPlatform.Core
+namespace ENGyn.NodesTestPlatform.Providers
 {
-    public class ReflectionHandler
+    public class ReflectionHandler : IReflectionHandlerService
     {
         private readonly string _commandsNamespace = "ENGyn.NodesTestPlatform.Commands";
         private readonly Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
