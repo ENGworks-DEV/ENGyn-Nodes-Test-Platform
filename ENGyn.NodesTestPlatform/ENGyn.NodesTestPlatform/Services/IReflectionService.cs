@@ -1,4 +1,4 @@
-﻿using ENGyn.NodesTestPlatform.Models;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -6,7 +6,9 @@ namespace ENGyn.NodesTestPlatform.Services
 {
     public interface IReflectionService
     {
-        Dictionary<string, Dictionary<string, IList<ParameterInfo>>> LoadAndGetLibraries();
-        string InvokeConsoleCommand(Command userCommand, object[] args);
+        IList<Type> LoadAndGetCommandVerbs();
+        IList<Type> GetMethodArgumentTypes(MethodInfo method);
+        MethodInfo FindMethodInAssembly(Assembly assembly, string methodName);
+        MethodInfo[] FindMethodInAssembly2(Assembly assembly, string methodName);
     }
 }

@@ -1,94 +1,86 @@
-﻿using ENGyn.NodesTestPlatform.Core;
-using ENGyn.NodesTestPlatform.Models;
+﻿using CommandLine;
+using ENGyn.NodesTestPlatform.Commands;
 using ENGyn.NodesTestPlatform.Services;
 using ENGyn.NodesTestPlatform.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
     public class RunnableProvider : IRunnableService
     {
-        private readonly string _art;
-        private readonly IReflectionService _reflectionHandler;
-        private readonly ICommandValidatorService _commandValidation;
-        private readonly Dictionary<string, Dictionary<string, IList<ParameterInfo>>> _commandLibaries;
+        private readonly IReflectionService _reflectionService;
+        private readonly ICommandService _commandService;
+        private readonly IList<Type> _CommandVerbsList;
 
         public RunnableProvider()
         {
-            _commandValidation = new CommandValidatorProvider();
-            _reflectionHandler = new ReflectionProvider();
-            _commandLibaries = _reflectionHandler.LoadAndGetLibraries();
-            _art = DesignArt.CreateArt();
+            _reflectionService = new ReflectionProvider();
+            _commandService = new CommandProvider();
+            _CommandVerbsList = _reflectionService.LoadAndGetCommandVerbs();
+        }
+
+
+        /// <summary>
+        /// Commands entry point. Creates the parser instance and recives the CLI arguments
+        /// </summary>
+        public void Run(string[] args)
+        {
+            foreach (string arg in args)
+            {
+                Console.WriteLine(arg);
+            }
+
+            try
+            {
+                Parser.Default.ParseArguments(args, _CommandVerbsList.ToArray())
+                    .WithParsed(Execute)
+                    .WithNotParsed(Errors);
+            }
+            catch (ArgumentException ex)
+            {
+                ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
+            }
+            catch(Exception ex)
+            {
+                ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
+            }
+
         }
 
         /// <summary>
-        /// Main execution loop of the application
+        /// Handle exception if command parsing goes wrong or if there missing flags
         /// </summary>
-        public void Run()
+        /// <param name="error"></param>
+        public void Errors(object error)
         {
-            ConsolePrompt.WriteToConsole(_art, ConsoleColor.Green);
-
-            while (true)
-            {
-                try
-                {
-                    var consoleInput = ConsolePrompt.ReadFromConsole();
-                    ConsoleCommand consoleCommand = new ConsoleCommand(consoleInput);
-                    var executionResult = Execute(consoleCommand.GetCommand());
-                    ConsolePrompt.WriteToConsole(executionResult);
-                }
-                catch (Exception ex)
-                {
-                    ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
-                }
-            }
+            // TODO Error prompt
         }
 
         /// <summary>
-        /// It performs the execution and validation of a console command provided by the user
+        /// Executes the provided command verb. ie: test, info, exit...
         /// </summary>
-        /// <param name="userCommand">Command object provided by the user</param>
-        /// <returns>Execution result in form of string</returns>
-        /// <exception cref="ArgumentException">Thrown when provided command doesn't exists or when arguments doesn't match the command signature</exception>
-        public string Execute(Command userCommand)
+        /// <param name="verb">Object that represents the verb to execute</param>
+        public void Execute(object verb)
         {
-            bool validCommandLibraryFlag = _commandValidation.ValidateLibraryCommand(_commandLibaries, userCommand.LibraryClassName, userCommand.Name);
-
-            if (!validCommandLibraryFlag)
+            switch (verb)
             {
-                throw new ArgumentException("Unknown command. Use command 'help' to see commands info");
+                case Test test:
+                    _commandService.Test(test);
+                    break;
+
+                case Info info:
+                    _commandService.Info(info);
+                    break;
+
+                case Interactive interactive:
+                    _commandService.Interactive(interactive);
+                    break;
+
+                default:
+                    throw new ArgumentException("The provided verb doesn't exists");
             }
-
-            var methodArgumentValueList = new List<object>();
-            var commandArgumentList = _commandLibaries[userCommand.LibraryClassName][userCommand.Name];
-            var validArgsCountFlag = _commandValidation.ValidateProvidedArgumentsCount(commandArgumentList, userCommand.Arguments.Count(), out string validationMessage);
-
-            if (!validArgsCountFlag)
-            {
-                throw new ArgumentException(validationMessage);
-            }
-
-            if (commandArgumentList.Count > 0)
-            {
-                foreach (var argument in commandArgumentList)
-                {
-                    methodArgumentValueList.Add(argument.DefaultValue);
-                }
-
-                for (int index = 0; index < userCommand.Arguments.Count(); index++)
-                {
-                    var methodArgument = commandArgumentList.ElementAt(index);
-                    var argumentType = methodArgument.ParameterType;
-                    var parsedValue = ParserHelper.ParseType(argumentType, userCommand.Arguments.ElementAt(index));
-                    methodArgumentValueList.RemoveAt(index);
-                    methodArgumentValueList.Insert(index, parsedValue);
-                }
-            }
-
-            return _reflectionHandler.InvokeConsoleCommand(userCommand, methodArgumentValueList.ToArray());
         }
     }
 }
