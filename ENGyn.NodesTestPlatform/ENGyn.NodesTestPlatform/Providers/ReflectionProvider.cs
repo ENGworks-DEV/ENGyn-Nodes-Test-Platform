@@ -1,7 +1,10 @@
 ﻿using CommandLine;
 using ENGyn.NodesTestPlatform.Services;
+using ENGyn.NodesTestPlatform.Utils;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
@@ -43,15 +46,17 @@ namespace ENGyn.NodesTestPlatform.Providers
         }
 
         /// <summary>
-        /// Search in all the assembly classes for a method that match with provided name
+        /// Search in all the assembly classes for a method that match with provided name. Normally this method
+        /// will return only just one item. But there might be ocassions where an assembly contains overloaded methods
+        /// in that case will return more than one Method info item
         /// </summary>
         /// <param name="assembly">Assembly to search</param>
         /// <param name="methodName">Exact name of the method</param>
-        /// <returns>A method info object that correspond with the provided name</returns>
+        /// <returns>A MethodInfo Array containing at least one method that match the provided name</returns>
         /// <exception cref="MissingMethodException">Thrown when there's not match with the provided name</exception>
-        public MethodInfo FindMethodInAssembly(Assembly assembly, string methodName)
+        public IList<MethodInfo> FindMethodInAssembly(Assembly assembly, string methodName)
         {
-            MethodInfo methodInfo = null;
+            IList<MethodInfo> methodInfo = new List<MethodInfo>();
             
             // Gets all the static classes: For CLR static classes are abstract and sealed.
             Type[] publicStaticClasses = assembly.GetTypes().Where(
@@ -62,8 +67,7 @@ namespace ENGyn.NodesTestPlatform.Providers
 
             foreach (Type loadedClass in publicStaticClasses)
             {
-                var methodsss = loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic && p.IsStatic);
-                methodInfo = loadedClass.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+                loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic && p.IsStatic).ToList().ForEach(p => methodInfo.Add(p));
             }
 
             if (methodInfo != null) return methodInfo;
@@ -77,8 +81,7 @@ namespace ENGyn.NodesTestPlatform.Providers
 
             foreach (Type loadedClass in publicClasses)
             {
-                var methodsss = loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic);
-                methodInfo = loadedClass.GetMethod(methodName, BindingFlags.Public);
+                loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic).ToList().ForEach(p => methodInfo.Add(p)); ;
             }
 
             if (methodInfo != null)
@@ -87,50 +90,24 @@ namespace ENGyn.NodesTestPlatform.Providers
                 throw new MissingMethodException($"Method: {methodName} doesn't exists on this assembly");
         }
 
-        /// <summary>
-        /// Search in all the assembly classes for a method that match with provided name
-        /// </summary>
-        /// <param name="assembly">Assembly to search</param>
-        /// <param name="methodName">Exact name of the method</param>
-        /// <returns>A method info object that correspond with the provided name</returns>
-        /// <exception cref="MissingMethodException">Thrown when there's not match with the provided name</exception>
-        public MethodInfo[] FindMethodInAssembly2(Assembly assembly, string methodName)
+        public MethodInfo GetCorrectMethod(IList<MethodInfo> foundMethods, JObject parsedJSON)
         {
-            MethodInfo[] methodInfo = null;
+            dynamic runTimeGeneratedObject = new ExpandoObject() as IDictionary<string, object>;
+            MethodInfo correctMethod = null;
 
-            // Gets all the static classes: For CLR static classes are abstract and sealed.
-            Type[] publicStaticClasses = assembly.GetTypes().Where(
-                p => p.IsClass &&
-                p.IsAbstract &&
-                p.IsSealed &&
-                p.IsPublic).ToArray();
-
-            foreach (Type loadedClass in publicStaticClasses)
+            foreach(MethodInfo method in foundMethods)
             {
-                // TODO Lidiar con sobrecargas
-                methodInfo = loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic && p.IsStatic).ToArray();
-                //methodInfo = loadedClass.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+                ParameterInfo[] parameters = method.GetParameters();
+
+                if (parameters.Length == parsedJSON.Count)
+                {
+                    foreach(ParameterInfo p in parameters)
+                    {
+                        ConsolePrompt.WriteToConsole($"{p.Name} || {p.ParameterType}", ConsoleColor.Green);
+                    }
+                }
             }
-
-            if (methodInfo != null) return methodInfo;
-
-            // Get all classes that needs an instace to run.
-            Type[] publicClasses = assembly.GetTypes().Where(
-                p => p.IsClass &&
-                !p.IsAbstract &&
-                !p.IsSealed &&
-                p.IsPublic).ToArray();
-
-            foreach (Type loadedClass in publicClasses)
-            {
-                methodInfo = loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic).ToArray();
-                //methodInfo = loadedClass.GetMethod(methodName, BindingFlags.Public);
-            }
-
-            if (methodInfo != null)
-                return methodInfo;
-            else
-                throw new MissingMethodException($"Method: {methodName} doesn't exists on this assembly");
+            return correctMethod;
         }
     }
 }

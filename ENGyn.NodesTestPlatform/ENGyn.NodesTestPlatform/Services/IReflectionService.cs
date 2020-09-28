@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -8,7 +9,8 @@ namespace ENGyn.NodesTestPlatform.Services
     {
         IList<Type> LoadAndGetCommandVerbs();
         IList<Type> GetMethodArgumentTypes(MethodInfo method);
-        MethodInfo FindMethodInAssembly(Assembly assembly, string methodName);
-        MethodInfo[] FindMethodInAssembly2(Assembly assembly, string methodName);
+        IList<MethodInfo> FindMethodInAssembly(Assembly assembly, string methodName);
+        MethodInfo GetCorrectMethod(IList<MethodInfo> foundMethods, JObject parsedJSON);
+        
     }
 }

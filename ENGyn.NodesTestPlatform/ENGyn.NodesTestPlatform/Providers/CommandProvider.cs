@@ -4,6 +4,7 @@ using ENGyn.NodesTestPlatform.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -55,7 +56,10 @@ namespace ENGyn.NodesTestPlatform.Providers
             // Loading Assembly
             Assembly assemblyToTest = Assembly.LoadFrom("Tests\\ENGyn.Nodes.Generic.dll");
 
-            MethodInfo[] method = _reflectionService.FindMethodInAssembly2(assemblyToTest, test.Method);
+            // Find method matches
+            IList<MethodInfo> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, test.Method);
+
+            _reflectionService.GetCorrectMethod(matchedMethods, parsedJSON);
         }
     }
 }
