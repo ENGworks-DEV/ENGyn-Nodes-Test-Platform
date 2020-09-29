@@ -1,10 +1,7 @@
 ﻿using CommandLine;
 using ENGyn.NodesTestPlatform.Services;
-using ENGyn.NodesTestPlatform.Utils;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
@@ -13,6 +10,8 @@ namespace ENGyn.NodesTestPlatform.Providers
     public class ReflectionProvider : IReflectionService
     {
         private const string _verbsNamespace = "ENGyn.NodesTestPlatform.Commands";
+
+        #region Implemented from interface
 
         /// <summary>
         /// Gets all the classes located on Models Folder that represents available commands to execute on the Nodes Testing Platform
@@ -90,24 +89,6 @@ namespace ENGyn.NodesTestPlatform.Providers
                 throw new MissingMethodException($"Method: {methodName} doesn't exists on this assembly");
         }
 
-        public MethodInfo GetCorrectMethod(IList<MethodInfo> foundMethods, JObject parsedJSON)
-        {
-            dynamic runTimeGeneratedObject = new ExpandoObject() as IDictionary<string, object>;
-            MethodInfo correctMethod = null;
-
-            foreach(MethodInfo method in foundMethods)
-            {
-                ParameterInfo[] parameters = method.GetParameters();
-
-                if (parameters.Length == parsedJSON.Count)
-                {
-                    foreach(ParameterInfo p in parameters)
-                    {
-                        ConsolePrompt.WriteToConsole($"{p.Name} || {p.ParameterType}", ConsoleColor.Green);
-                    }
-                }
-            }
-            return correctMethod;
-        }
+        #endregion
     }
 }

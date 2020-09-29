@@ -1,10 +1,10 @@
 ﻿using ENGyn.NodesTestPlatform.Commands;
 using ENGyn.NodesTestPlatform.Services;
-using ENGyn.NodesTestPlatform.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Reflection;
 
@@ -18,7 +18,6 @@ namespace ENGyn.NodesTestPlatform.Providers
         {
             _reflectionService = new ReflectionProvider();
         }
-
 
         public void Info(Info info)
         {
@@ -43,15 +42,11 @@ namespace ENGyn.NodesTestPlatform.Providers
         {
             string jsonFile = string.Empty;
 
-
             // Loading json arguments from location.
             using (StreamReader reader = new StreamReader(test.Arguments))
             {
                 jsonFile = reader.ReadToEnd();
             }
-
-            // Deserializing JSON
-            var parsedJSON = JObject.Parse(jsonFile);
 
             // Loading Assembly
             Assembly assemblyToTest = Assembly.LoadFrom("Tests\\ENGyn.Nodes.Generic.dll");
@@ -59,7 +54,9 @@ namespace ENGyn.NodesTestPlatform.Providers
             // Find method matches
             IList<MethodInfo> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, test.Method);
 
-            _reflectionService.GetCorrectMethod(matchedMethods, parsedJSON);
+            // deserializing json
+            var converter = new ExpandoObjectConverter();
+            dynamic deserializedParams = JsonConvert.DeserializeObject<ExpandoObject>(jsonFile, converter);
         }
     }
 }
