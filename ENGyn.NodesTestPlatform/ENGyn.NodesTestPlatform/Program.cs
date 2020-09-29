@@ -1,6 +1,5 @@
 ﻿using ENGyn.NodesTestPlatform.Providers;
 using ENGyn.NodesTestPlatform.Services;
-using System;
 
 namespace ENGyn.NodesTestPlatform
 {
@@ -10,7 +9,6 @@ namespace ENGyn.NodesTestPlatform
         {
             IRunnableService runnable = new RunnableProvider();
             runnable.Run(args);
-            Console.ReadKey();
         }
     }
 }
