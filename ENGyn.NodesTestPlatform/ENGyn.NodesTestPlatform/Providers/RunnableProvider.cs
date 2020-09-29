@@ -27,11 +27,6 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// </summary>
         public void Run(string[] args)
         {
-            foreach (string arg in args)
-            {
-                Console.WriteLine(arg);
-            }
-
             try
             {
                 Parser.Default.ParseArguments(args, _CommandVerbsList.ToArray())
