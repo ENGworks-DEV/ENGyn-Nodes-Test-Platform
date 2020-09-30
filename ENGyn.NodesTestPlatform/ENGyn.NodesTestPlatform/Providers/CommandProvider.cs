@@ -1,5 +1,6 @@
 ﻿using ENGyn.NodesTestPlatform.Commands;
 using ENGyn.NodesTestPlatform.Services;
+using ENGyn.NodesTestPlatform.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
@@ -7,31 +8,47 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
     public class CommandProvider : ICommandService
     {
         private readonly IReflectionService _reflectionService;
+        private readonly IConfigurationService _configurationService;
+        private string _currentExecutionDirectory;
 
         public CommandProvider()
         {
             _reflectionService = new ReflectionProvider();
-        }
-
-        public void Info(Info info)
-        {
-            throw new NotImplementedException();
+            _configurationService = new ConfigurationProvider();
+            _currentExecutionDirectory = Environment.CurrentDirectory;
         }
 
         /// <summary>
-        /// Start the application on interactive mode
+        /// Initializes a new node test platform project
         /// </summary>
-        /// <param name="interactive">Interactive command instance</param>
-        public void Interactive(Interactive interactive)
+        /// <param name="init">Init command instance</param>
+        public void Init(Init init)
         {
-            // TODO interactive mode
-            throw new NotImplementedException();
+            bool projectNameIsValid = Regex.Match(init.ProjectName, @"^[^\s]+$").Success;
+
+            if (projectNameIsValid)
+            {
+                string fullProjectDirectoryPath = $@"{_currentExecutionDirectory}\{init.ProjectName}";
+                string dllFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\dlls";
+                string testFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\tests";
+
+                _configurationService.createsProjectDirectory(fullProjectDirectoryPath);
+                _configurationService.createsProjectDirectory(dllFolderSubdirectory);
+                _configurationService.createsProjectDirectory(testFolderSubdirectory);
+
+                ConsolePrompt.WriteToConsole($@"Project: {init.ProjectName} created, use cd command to get inside the folder and add some dll's on test folder", ConsoleColor.Green);
+            }
+            else
+            {
+                throw new ArgumentException("Project name is not valid");
+            }
         }
 
         /// <summary>
@@ -49,7 +66,7 @@ namespace ENGyn.NodesTestPlatform.Providers
             }
 
             // Loading Assembly
-            Assembly assemblyToTest = Assembly.LoadFrom("Tests\\ENGyn.Nodes.Generic.dll");
+            Assembly assemblyToTest = Assembly.LoadFrom($@"{_currentExecutionDirectory}\dlls\{test.Dll}");
 
             // Find method matches
             IList<MethodInfo> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, test.Method);

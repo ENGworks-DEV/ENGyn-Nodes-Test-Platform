@@ -65,16 +65,12 @@ namespace ENGyn.NodesTestPlatform.Providers
                     _commandService.Test(test);
                     break;
 
-                case Info info:
-                    _commandService.Info(info);
-                    break;
-
-                case Interactive interactive:
-                    _commandService.Interactive(interactive);
+                case Init init:
+                    _commandService.Init(init);
                     break;
 
                 default:
-                    throw new ArgumentException("The provided verb doesn't exists");
+                    throw new ArgumentException("The provided command doesn't exists");
             }
         }
     }
