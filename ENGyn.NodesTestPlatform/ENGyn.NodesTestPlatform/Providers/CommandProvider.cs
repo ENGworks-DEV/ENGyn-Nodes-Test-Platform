@@ -57,6 +57,7 @@ namespace ENGyn.NodesTestPlatform.Providers
             // deserializing json
             var converter = new ExpandoObjectConverter();
             dynamic deserializedParams = JsonConvert.DeserializeObject<ExpandoObject>(jsonFile, converter);
+            _reflectionService.GetCorrectMethod(matchedMethods, deserializedParams);
         }
     }
 }
