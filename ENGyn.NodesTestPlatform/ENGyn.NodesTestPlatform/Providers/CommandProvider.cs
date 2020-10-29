@@ -39,9 +39,9 @@ namespace ENGyn.NodesTestPlatform.Providers
                 string dllFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\dlls";
                 string testFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\tests";
 
-                _configurationService.createsProjectDirectory(fullProjectDirectoryPath);
-                _configurationService.createsProjectDirectory(dllFolderSubdirectory);
-                _configurationService.createsProjectDirectory(testFolderSubdirectory);
+                _configurationService.CreatesProjectDirectory(fullProjectDirectoryPath);
+                _configurationService.CreatesProjectDirectory(dllFolderSubdirectory);
+                _configurationService.CreatesProjectDirectory(testFolderSubdirectory);
 
                 ConsolePrompt.WriteToConsole($@"Project: {init.ProjectName} created, use cd command to get inside the folder and add some dll's on test folder", ConsoleColor.Green);
             }
