@@ -4,6 +4,6 @@ namespace ENGyn.NodesTestPlatform.Services
 {
     public interface IConfigurationService
     {
-        DirectoryInfo createsProjectDirectory(string directoryName);
+        DirectoryInfo CreatesProjectDirectory(string directoryName);
     }
 }
