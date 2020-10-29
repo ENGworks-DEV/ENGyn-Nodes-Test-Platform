@@ -7,7 +7,7 @@ namespace ENGyn.NodesTestPlatform.Providers
     {
         public DirectoryInfo CreatesProjectDirectory(string directoryName)
         {
-            DirectoryInfo directory = new DirectoryInfo(directoryName);
+            var directory = new DirectoryInfo(directoryName);
 
             try
             {
