@@ -1,14 +1,13 @@
 ﻿using ENGyn.NodesTestPlatform.Services;
-using System;
 using System.IO;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
     public class ConfigurationProvider : IConfigurationService
     {
-        public DirectoryInfo createsProjectDirectory(string directoryName)
+        public DirectoryInfo CreatesProjectDirectory(string directoryName)
         {
-            DirectoryInfo directory = new DirectoryInfo(directoryName);
+            var directory = new DirectoryInfo(directoryName);
 
             try
             {

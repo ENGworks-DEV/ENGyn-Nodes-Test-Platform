@@ -14,10 +14,10 @@ namespace ENGyn.NodesTestPlatform.Providers
         private readonly ICommandService _commandService;
         private readonly IList<Type> _CommandVerbsList;
 
-        public RunnableProvider()
+        public RunnableProvider(IReflectionService reflectionService, ICommandService commandService)
         {
-            _reflectionService = new ReflectionProvider();
-            _commandService = new CommandProvider();
+            _reflectionService = reflectionService;
+            _commandService = commandService;
             _CommandVerbsList = _reflectionService.LoadAndGetCommandVerbs();
         }
 
@@ -41,7 +41,6 @@ namespace ENGyn.NodesTestPlatform.Providers
             {
                 ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
             }
-
         }
 
         /// <summary>

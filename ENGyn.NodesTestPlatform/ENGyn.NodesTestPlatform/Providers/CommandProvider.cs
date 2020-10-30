@@ -17,11 +17,12 @@ namespace ENGyn.NodesTestPlatform.Providers
         private readonly IReflectionService _reflectionService;
         private readonly IConfigurationService _configurationService;
         private string _currentExecutionDirectory;
+        const string _RegexLettersAndNumbersNoWhitespaces = @"^[A-Za-z0-9]+$";
 
-        public CommandProvider()
+        public CommandProvider(IReflectionService reflectionService, IConfigurationService configurationService)
         {
-            _reflectionService = new ReflectionProvider();
-            _configurationService = new ConfigurationProvider();
+            _reflectionService = reflectionService;
+            _configurationService = configurationService;
             _currentExecutionDirectory = Environment.CurrentDirectory;
         }
 
@@ -31,7 +32,7 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// <param name="init">Init command instance</param>
         public void Init(Init init)
         {
-            bool projectNameIsValid = Regex.Match(init.ProjectName, @"^[^\s]+$").Success;
+            bool projectNameIsValid = Regex.Match(init.ProjectName, _RegexLettersAndNumbersNoWhitespaces).Success;
 
             if (projectNameIsValid)
             {
@@ -39,15 +40,15 @@ namespace ENGyn.NodesTestPlatform.Providers
                 string dllFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\dlls";
                 string testFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\tests";
 
-                _configurationService.createsProjectDirectory(fullProjectDirectoryPath);
-                _configurationService.createsProjectDirectory(dllFolderSubdirectory);
-                _configurationService.createsProjectDirectory(testFolderSubdirectory);
+                _configurationService.CreatesProjectDirectory(fullProjectDirectoryPath);
+                _configurationService.CreatesProjectDirectory(dllFolderSubdirectory);
+                _configurationService.CreatesProjectDirectory(testFolderSubdirectory);
 
                 ConsolePrompt.WriteToConsole($@"Project: {init.ProjectName} created, use cd command to get inside the folder and add some dll's on test folder", ConsoleColor.Green);
             }
             else
             {
-                throw new ArgumentException("Project name is not valid");
+                throw new ArgumentException("Invalid project name");
             }
         }
 
@@ -60,7 +61,7 @@ namespace ENGyn.NodesTestPlatform.Providers
             string jsonFile = string.Empty;
 
             // Loading json arguments from location.
-            using (StreamReader reader = new StreamReader(test.Arguments))
+            using (var reader = new StreamReader(test.Arguments))
             {
                 jsonFile = reader.ReadToEnd();
             }

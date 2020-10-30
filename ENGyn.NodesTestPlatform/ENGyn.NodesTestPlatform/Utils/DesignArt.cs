@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace ENGyn.NodesTestPlatform.Utils
 {
@@ -6,6 +7,7 @@ namespace ENGyn.NodesTestPlatform.Utils
     {
         public static string CreateArt()
         {
+            int year = DateTime.Now.Year;
             StringBuilder sb = new StringBuilder();
 
             // Creating FirstLine;
@@ -27,7 +29,7 @@ namespace ENGyn.NodesTestPlatform.Utils
             sb.Append("-------------------------------------------------------------------").AppendLine();
 
             sb.AppendLine();
-            sb.Append("ENGworks. INC. All rights reserved");
+            sb.Append($"{year} ENGworks. INC. All rights reserved.");
             sb.AppendLine();
 
             string startupArt = sb.ToString();

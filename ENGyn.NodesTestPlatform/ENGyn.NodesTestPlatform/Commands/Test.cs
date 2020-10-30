@@ -8,14 +8,11 @@ namespace ENGyn.NodesTestPlatform.Commands
     [Verb("test", HelpText = "Initialize node tests")]
     public class Test
     {
-        [Option('t', "type", Required = true, HelpText = "Indicates what type of assert are gonna be used on the test")]
+        [Option('t', "type", Required = true, HelpText = "Indicates the type of assert to be used in the test")]
         public string Type { get; set; }
 
-        [Option('m', "method", Required = true, HelpText = "Name of the method that are going to be tested")]
+        [Option('m', "method", Required = true, HelpText = "Method name to be tested")]
         public string Method { get; set; }
-
-        [Option('c', "case", Required = false, HelpText = "Name of the test case to apply")]
-        public string Case { get; set; }
 
         [Option('a', "args", Required = true, HelpText = "Path to json arguments file")]
         public string Arguments { get; set; }
@@ -26,7 +23,7 @@ namespace ENGyn.NodesTestPlatform.Commands
         [Option('e', "expected", Required = false, HelpText = "Expected value of the test execution")]
         public string Expected { get; set; }
 
-        [Option('d', "dll", Required = true, HelpText = "Fullname of dll to test")]
+        [Option('d', "dll", Required = true, HelpText = "Full name of dll to test")]
         public string Dll { get; set; }
     }
 }
