@@ -4,7 +4,7 @@ namespace ENGyn.NodesTestPlatform.Utils
 {
     public static class ConsolePrompt
     {
-        private static readonly string promptMark = "eng >";
+        const string promptMark = "eng >";
 
         public static string ReadFromConsole(string promptMessage = "")
         {
