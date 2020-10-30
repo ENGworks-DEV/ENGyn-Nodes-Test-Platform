@@ -89,6 +89,44 @@ namespace ENGyn.NodesTestPlatform.Providers
                 throw new MissingMethodException($"Method: {methodName} doesn't exists on this assembly");
         }
 
+        /// <summary>
+        /// Gets correct method from when overloads are found. It analyzes method signature and compares with
+        /// param types from the deserialized Json file.
+        /// </summary>
+        /// <param name="foundMethods">Method info array with found matches</param>
+        /// <param name="deserializedParams">dynamic object that represents the deserialized Json file</param>
+        /// <returns>The correct method to execute</returns>
+        public MethodInfo GetCorrectMethod(IList<MethodInfo> foundMethods, dynamic deserializedParams)
+        {
+            MethodInfo correctMethod = null;
+            var jsonParams = (IDictionary<string, object>)deserializedParams;
+
+            foreach (MethodInfo method in foundMethods)
+            {
+                ParameterInfo[] methodParams = method.GetParameters();
+                bool methodResult = (methodParams.Length == jsonParams.Count) || ValidateJsonParameters(methodParams, jsonParams);
+                if (methodResult) return method;
+            }
+
+            return correctMethod;
+        }
+
+        /// <summary>
+        /// Validates if the method signature match with the json parameters.
+        /// </summary>
+        /// <param name="methodParams">Parameter info array that contains the method arguments info</param>
+        /// <param name="jsonParams">Dictionary that contains all the json paramteres</param>
+        /// <returns>boolean flag that indicates if the method is valid or not. Returns true for valid methods</returns>
+        private bool ValidateJsonParameters(ParameterInfo[] methodParams, IDictionary<string, object> jsonParams)
+        {
+            bool result = true;
+            for (int i = 0; i < jsonParams.Count; ++i)
+            {
+                result &= methodParams[i].ParameterType.Equals(jsonParams.Values.ElementAt(i).GetType());
+            }
+            return result;
+        }
+
         #endregion
     }
 }

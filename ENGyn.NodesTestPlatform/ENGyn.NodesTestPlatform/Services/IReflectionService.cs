@@ -9,5 +9,6 @@ namespace ENGyn.NodesTestPlatform.Services
         IList<Type> LoadAndGetCommandVerbs();
         IList<Type> GetMethodArgumentTypes(MethodInfo method);
         IList<MethodInfo> FindMethodInAssembly(Assembly assembly, string methodName);
+        MethodInfo GetCorrectMethod(IList<MethodInfo> foundMethods, dynamic deserializedParams);
     }
 }
