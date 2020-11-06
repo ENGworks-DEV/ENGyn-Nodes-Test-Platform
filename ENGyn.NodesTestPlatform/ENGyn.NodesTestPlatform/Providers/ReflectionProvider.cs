@@ -14,7 +14,7 @@ namespace ENGyn.NodesTestPlatform.Providers
         #region Implemented from interface
 
         /// <summary>
-        /// Gets all the classes located on Models Folder that represents available commands to execute on the Nodes Testing Platform
+        /// Gets all the models located on Commands Folder that represents available commands to execute on the Nodes Testing Platform
         /// </summary>
         /// <returns>List of type classes that represents every available command</returns>
         public IList<Type> LoadAndGetCommandVerbs()
