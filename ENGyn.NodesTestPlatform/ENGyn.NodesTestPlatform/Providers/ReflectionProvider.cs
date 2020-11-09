@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using ENGyn.NodesTestPlatform.Services;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,6 @@ namespace ENGyn.NodesTestPlatform.Providers
     public class ReflectionProvider : IReflectionService
     {
         private const string _verbsNamespace = "ENGyn.NodesTestPlatform.Commands";
-
-        #region Implemented from interface
 
         /// <summary>
         /// Gets all the models located on Commands Folder that represents available commands to execute on the Nodes Testing Platform
@@ -45,19 +44,17 @@ namespace ENGyn.NodesTestPlatform.Providers
         }
 
         /// <summary>
-        /// Search in all the assembly classes for a method that match with provided name. Normally this method
-        /// will return only just one item. But there might be ocassions where an assembly contains overloaded methods
-        /// in that case will return more than one Method info item
+        /// Search in all the assembly classes for methods that matches the provided name.
         /// </summary>
         /// <param name="assembly">Assembly to search</param>
-        /// <param name="methodName">Exact name of the method</param>
+        /// <param name="methodName">Name of the method</param>
         /// <returns>A MethodInfo Array containing at least one method that match the provided name</returns>
         /// <exception cref="MissingMethodException">Thrown when there's not match with the provided name</exception>
-        public IList<MethodInfo> FindMethodInAssembly(Assembly assembly, string methodName)
+        public IList<Tuple<MethodInfo, object>> FindMethodInAssembly(Assembly assembly, string methodName)
         {
-            IList<MethodInfo> methodInfo = new List<MethodInfo>();
+            IList<Tuple<MethodInfo, object>> methods = new List<Tuple<MethodInfo, object>>();
             
-            // Gets all the static classes: For CLR static classes are abstract and sealed.
+            // This search returns all the static classes from assembly (For CLR static classes are abstract and sealed).
             Type[] publicStaticClasses = assembly.GetTypes().Where(
                 p => p.IsClass && 
                 p.IsAbstract && 
@@ -66,12 +63,15 @@ namespace ENGyn.NodesTestPlatform.Providers
 
             foreach (Type loadedClass in publicStaticClasses)
             {
-                loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic && p.IsStatic).ToList().ForEach(p => methodInfo.Add(p));
+                loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic && p.IsStatic).ToList().ForEach(p => 
+                {
+                    methods.Add(new Tuple<MethodInfo, object>(p, null));
+                });
             }
 
-            if (methodInfo != null) return methodInfo;
+            if (!methods.Count.Equals(0)) return methods;
 
-            // Get all classes that needs an instace to run.
+            // This search returns all the classes that needs an instance to be invoked (For CLR those clases are the public ones. Not sealed and Abstract)
             Type[] publicClasses = assembly.GetTypes().Where(
                 p => p.IsClass && 
                 !p.IsAbstract && 
@@ -80,11 +80,15 @@ namespace ENGyn.NodesTestPlatform.Providers
 
             foreach (Type loadedClass in publicClasses)
             {
-                loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic).ToList().ForEach(p => methodInfo.Add(p)); ;
+                loadedClass.GetMethods().Where(p => p.Name == methodName && p.IsPublic).ToList().ForEach(p =>
+                {
+                    var loadedClassInstance = Activator.CreateInstance(loadedClass);
+                    methods.Add(new Tuple<MethodInfo, object>(p, loadedClassInstance));
+                });
             }
 
-            if (methodInfo != null)
-                return methodInfo;
+            if (!methods.Count.Equals(0))
+                return methods;
             else
                 throw new MissingMethodException($"Method: {methodName} doesn't exists on this assembly");
         }
@@ -96,15 +100,15 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// <param name="foundMethods">Method info array with found matches</param>
         /// <param name="deserializedParams">dynamic object that represents the deserialized Json file</param>
         /// <returns>The correct method to execute</returns>
-        public MethodInfo GetCorrectMethod(IList<MethodInfo> foundMethods, dynamic deserializedParams)
+        public Tuple<MethodInfo, object> GetCorrectMethod(IList<Tuple<MethodInfo, object>> foundMethods, dynamic deserializedParams)
         {
-            MethodInfo correctMethod = null;
-            var jsonParams = (IDictionary<string, object>)deserializedParams;
+            Tuple<MethodInfo, object> correctMethod = null;
+            var jsonParams = (JArray) deserializedParams ;
 
-            foreach (MethodInfo method in foundMethods)
+            foreach (var method in foundMethods)
             {
-                ParameterInfo[] methodParams = method.GetParameters();
-                bool methodResult = (methodParams.Length == jsonParams.Count) || ValidateJsonParameters(methodParams, jsonParams);
+                ParameterInfo[] methodParams = method.Item1.GetParameters();
+                bool methodResult = (methodParams.Length == jsonParams.Count);
                 if (methodResult) return method;
             }
 
@@ -127,6 +131,17 @@ namespace ENGyn.NodesTestPlatform.Providers
             return result;
         }
 
-        #endregion
+        /// <summary>
+        /// Executes a method using reflection
+        /// </summary>
+        /// <param name="methodToInvoke"></param>
+        /// <param name="instanceObject"></param>
+        /// <returns></returns>
+        public object ExecuteMethod(MethodInfo methodToInvoke, JArray parameters, object instanceObject = null)
+        {
+            var mParameters = parameters.ToObject<List<object>>().ToArray();
+            var result = methodToInvoke.Invoke(instanceObject, mParameters);
+            return result;
+        }
     }
 }

@@ -51,24 +51,35 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// <param name="test">Test command instance</param>
         public void Test(Test test)
         {
-            string jsonFile = string.Empty;
+            if (!_configurationService.CheckProjectDirectories())
+            {
+                throw new DirectoryNotFoundException("Project not found. Use 'ntp init' to create a new project or check for the right project location");
+            }
+
+            string fileData = string.Empty;
 
             // Loading json arguments from location.
-            using (var reader = new StreamReader(test.Arguments))
+            using (var reader = new StreamReader($@"{_currentExecutionDirectory}\config.json"))
             {
-                jsonFile = reader.ReadToEnd();
+                fileData = reader.ReadToEnd();
             }
+
+            // deserializing json
+            dynamic fileDataDeserilized = JsonConvert.DeserializeObject<dynamic>(fileData);
+            var testMethods = fileDataDeserilized.methods;
 
             // Loading Assembly
             Assembly assemblyToTest = Assembly.LoadFrom($@"{_currentExecutionDirectory}\dlls\{test.Dll}");
 
-            // Find method matches
-            IList<MethodInfo> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, test.Method);
 
-            // deserializing json
-            var converter = new ExpandoObjectConverter();
-            dynamic deserializedParams = JsonConvert.DeserializeObject<ExpandoObject>(jsonFile, converter);
-            _reflectionService.GetCorrectMethod(matchedMethods, deserializedParams);
+            // Passing through all test methods on the config file
+            foreach (var testMethod in testMethods)
+            {                
+                
+                IList<Tuple<MethodInfo, object>> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, (string)testMethod["name"]);
+                Tuple<MethodInfo, object> methodToExecute = _reflectionService.GetCorrectMethod(matchedMethods, testMethod["arguments"]);
+                _reflectionService.ExecuteMethod(methodToExecute.Item1, testMethod["arguments"], methodToExecute.Item2);
+            }
         }
     }
 }

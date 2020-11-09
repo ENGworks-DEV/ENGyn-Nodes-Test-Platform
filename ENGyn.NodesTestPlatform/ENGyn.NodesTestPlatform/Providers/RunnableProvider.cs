@@ -40,6 +40,7 @@ namespace ENGyn.NodesTestPlatform.Providers
             catch(Exception ex)
             {
                 ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
+                Console.ReadKey();
             }
         }
 

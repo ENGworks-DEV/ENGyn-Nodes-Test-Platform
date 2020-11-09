@@ -6,6 +6,6 @@ namespace ENGyn.NodesTestPlatform.Services
     {
         DirectoryInfo CreatesProjectDirectory(string fullDirectoryPath);
         void CreateProjectDirectoriesAndFiles(string projectName);
-        bool CheckProjectDirectories(string projectName);
+        bool CheckProjectDirectories();
     }
 }

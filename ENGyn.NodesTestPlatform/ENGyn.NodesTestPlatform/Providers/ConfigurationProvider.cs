@@ -20,11 +20,11 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// </summary>
         /// <param name="projectName">Project's name</param>
         /// <returns>A boolean result that indicates if project directories and files exists. True if exists, false if does not</returns>
-        public bool CheckProjectDirectories(string projectName)
+        public bool CheckProjectDirectories()
         {
             var projectExistanceFlag = true;
-            string projectSubdirectoryDllPath = $@"{_currentExecutionDirectory}\{projectName}\dlls";
-            string projectConfigFilePath = $@"{_currentExecutionDirectory}\{projectName}\config.json";
+            string projectSubdirectoryDllPath = $@"{_currentExecutionDirectory}\dlls";
+            string projectConfigFilePath = $@"{_currentExecutionDirectory}\config.json";
 
             projectExistanceFlag &= Directory.Exists(projectSubdirectoryDllPath);
             projectExistanceFlag &= File.Exists(projectConfigFilePath);
