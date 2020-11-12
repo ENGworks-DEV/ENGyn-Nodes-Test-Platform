@@ -40,7 +40,6 @@ namespace ENGyn.NodesTestPlatform.Providers
             catch(Exception ex)
             {
                 ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
-                Console.ReadKey();
             }
         }
 
@@ -50,7 +49,7 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// <param name="error"></param>
         public void Errors(object error)
         {
-            // TODO Error prompt
+            ConsolePrompt.WriteToConsole(error.ToString(), ConsoleColor.Red);
         }
 
         /// <summary>

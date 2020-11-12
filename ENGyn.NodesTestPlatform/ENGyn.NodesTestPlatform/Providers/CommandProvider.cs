@@ -2,13 +2,12 @@
 using ENGyn.NodesTestPlatform.Services;
 using ENGyn.NodesTestPlatform.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Xunit;
+using Xunit.Sdk;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
@@ -50,6 +49,7 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// </summary>
         /// <param name="test">Test command instance</param>
         public void Test(Test test)
+        
         {
             if (!_configurationService.CheckProjectDirectories())
             {
@@ -71,14 +71,36 @@ namespace ENGyn.NodesTestPlatform.Providers
             // Loading Assembly
             Assembly assemblyToTest = Assembly.LoadFrom($@"{_currentExecutionDirectory}\dlls\{test.Dll}");
 
-
             // Passing through all test methods on the config file
             foreach (var testMethod in testMethods)
-            {                
-                
-                IList<Tuple<MethodInfo, object>> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, (string)testMethod["name"]);
-                Tuple<MethodInfo, object> methodToExecute = _reflectionService.GetCorrectMethod(matchedMethods, testMethod["arguments"]);
-                _reflectionService.ExecuteMethod(methodToExecute.Item1, testMethod["arguments"], methodToExecute.Item2);
+            {
+                try
+                {
+                    var matchedMethods = _reflectionService.MatchMethodsInAssebly(assemblyToTest, (string)testMethod["name"]);
+                    var methodExecutable = _reflectionService.GetCorrectMethod(matchedMethods, testMethod["arguments"]);
+                    var result = _reflectionService.ExecuteMethod(methodExecutable.Item1, methodExecutable.Item3, methodExecutable.Item2);
+
+                    // TODO change this to something less hardcoded perhaps using enums a model class to deine test types
+                    if (testMethod["testType"] == "equals")
+                    {
+                        Assert.Equal(testMethod["result"], result);
+                    }
+
+                    if (testMethod["testType"] == "assert")
+                    {
+                        Assert.True(result);
+                    }
+
+                    ConsolePrompt.WriteToConsole($@"Test passed for method: {testMethod["name"]}, OK", ConsoleColor.Green);
+                }
+                catch (TrueException ex)
+                {
+                    ConsolePrompt.WriteToConsole($@"Test failed for method: {testMethod["name"]}, {ex.Message}", ConsoleColor.Red);
+                } 
+                catch (EqualException ex)
+                {
+                    ConsolePrompt.WriteToConsole($@"Test failed for method: {testMethod["name"]}, {ex.Message}", ConsoleColor.Red);
+                }
             }
         }
     }

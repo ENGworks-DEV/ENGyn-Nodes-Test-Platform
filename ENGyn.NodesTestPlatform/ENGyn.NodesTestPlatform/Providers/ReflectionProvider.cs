@@ -1,7 +1,9 @@
 ﻿using CommandLine;
 using ENGyn.NodesTestPlatform.Services;
+using ENGyn.NodesTestPlatform.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -50,7 +52,7 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// <param name="methodName">Name of the method</param>
         /// <returns>A MethodInfo Array containing at least one method that match the provided name</returns>
         /// <exception cref="MissingMethodException">Thrown when there's not match with the provided name</exception>
-        public IList<Tuple<MethodInfo, object>> FindMethodInAssembly(Assembly assembly, string methodName)
+        public IList<Tuple<MethodInfo, object>> MatchMethodsInAssebly(Assembly assembly, string methodName)
         {
             IList<Tuple<MethodInfo, object>> methods = new List<Tuple<MethodInfo, object>>();
             
@@ -94,39 +96,44 @@ namespace ENGyn.NodesTestPlatform.Providers
         }
 
         /// <summary>
-        /// Gets correct method from when overloads are found. It analyzes method signature and compares with
-        /// param types from the deserialized Json file.
+        /// Iterates thorugh a List of Tuples that contains methodInfo and object isntance. And analyze which of
+        /// this methods is the correct to execute depending of their arguments count and arguments types
         /// </summary>
-        /// <param name="foundMethods">Method info array with found matches</param>
-        /// <param name="deserializedParams">dynamic object that represents the deserialized Json file</param>
-        /// <returns>The correct method to execute</returns>
-        public Tuple<MethodInfo, object> GetCorrectMethod(IList<Tuple<MethodInfo, object>> foundMethods, dynamic deserializedParams)
+        /// <param name="foundMethods">List of tuples that contains the method to analyze and the instance of that method</param>
+        /// <param name="jsonParams">A Newtonsoft's JArray that contains the parameters for the method</param>
+        /// <returns>A tuple that contains the methodInfo to execute, the method instance and a IList that contains the necessary parameters to invoke the method.</returns>
+        public Tuple<MethodInfo, object, IList> GetCorrectMethod(IList<Tuple<MethodInfo, object>> foundMethods, JArray jsonParams)
         {
-            Tuple<MethodInfo, object> correctMethod = null;
-            var jsonParams = (JArray) deserializedParams ;
-
             foreach (var method in foundMethods)
             {
                 ParameterInfo[] methodParams = method.Item1.GetParameters();
-                bool methodResult = (methodParams.Length == jsonParams.Count);
-                if (methodResult) return method;
+                if (methodParams.Length == jsonParams.Count)
+                {
+                    var convertedParameters = ParserHelper.ConvertParametersToSignatureTypes(jsonParams, methodParams);
+
+                    if (ValidateArgumentsAndSignature(methodParams, jsonParams, convertedParameters))
+                    {
+                        return Tuple.Create(method.Item1, method.Item2, convertedParameters);
+                    }
+                }
             }
 
-            return correctMethod;
+            throw new ArgumentException("Arguments error: The provided arguments doesn't match the count or the types of method signature");
         }
 
         /// <summary>
         /// Validates if the method signature match with the json parameters.
         /// </summary>
         /// <param name="methodParams">Parameter info array that contains the method arguments info</param>
-        /// <param name="jsonParams">Dictionary that contains all the json paramteres</param>
+        /// <param name="jsonParameters">JArray that contains method paramteres used to test</param>
+        /// <param name="convertedParameters">A IList that contain the converted parameters from json/param>
         /// <returns>boolean flag that indicates if the method is valid or not. Returns true for valid methods</returns>
-        private bool ValidateJsonParameters(ParameterInfo[] methodParams, IDictionary<string, object> jsonParams)
+        private bool ValidateArgumentsAndSignature(ParameterInfo[] methodParams, JArray jsonParameters, IList convertedParameters)
         {
             bool result = true;
-            for (int i = 0; i < jsonParams.Count; ++i)
+            for (int i = 0; i < jsonParameters.Count; ++i)
             {
-                result &= methodParams[i].ParameterType.Equals(jsonParams.Values.ElementAt(i).GetType());
+                result &= methodParams[i].ParameterType.Equals(convertedParameters[i].GetType());
             }
             return result;
         }
@@ -134,13 +141,15 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// <summary>
         /// Executes a method using reflection
         /// </summary>
-        /// <param name="methodToInvoke"></param>
-        /// <param name="instanceObject"></param>
+        /// <param name="methodToInvoke">Method to be invoked</param>
+        /// <param name="parameters">Parameters of the method</param>
+        /// <param name="instanceObject">Class instance of the method</param>
         /// <returns></returns>
-        public object ExecuteMethod(MethodInfo methodToInvoke, JArray parameters, object instanceObject = null)
+        public object ExecuteMethod(MethodInfo methodToInvoke, IList parameters, object instanceObject = null)
         {
-            var mParameters = parameters.ToObject<List<object>>().ToArray();
-            var result = methodToInvoke.Invoke(instanceObject, mParameters);
+            object[] methodParameters = new object[parameters.Count];
+            parameters.CopyTo(methodParameters, 0);
+            var result = methodToInvoke.Invoke(instanceObject, methodParameters);
             return result;
         }
     }
