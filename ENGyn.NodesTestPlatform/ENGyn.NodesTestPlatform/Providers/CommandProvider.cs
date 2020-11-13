@@ -2,13 +2,12 @@
 using ENGyn.NodesTestPlatform.Services;
 using ENGyn.NodesTestPlatform.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Xunit;
+using Xunit.Sdk;
 
 namespace ENGyn.NodesTestPlatform.Providers
 {
@@ -36,14 +35,7 @@ namespace ENGyn.NodesTestPlatform.Providers
 
             if (projectNameIsValid)
             {
-                string fullProjectDirectoryPath = $@"{_currentExecutionDirectory}\{init.ProjectName}";
-                string dllFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\dlls";
-                string testFolderSubdirectory = $@"{_currentExecutionDirectory}\{init.ProjectName}\tests";
-
-                _configurationService.CreatesProjectDirectory(fullProjectDirectoryPath);
-                _configurationService.CreatesProjectDirectory(dllFolderSubdirectory);
-                _configurationService.CreatesProjectDirectory(testFolderSubdirectory);
-
+                _configurationService.CreateProjectDirectoriesAndFiles(init.ProjectName);
                 ConsolePrompt.WriteToConsole($@"Project: {init.ProjectName} created, use cd command to get inside the folder and add some dll's on test folder", ConsoleColor.Green);
             }
             else
@@ -57,25 +49,59 @@ namespace ENGyn.NodesTestPlatform.Providers
         /// </summary>
         /// <param name="test">Test command instance</param>
         public void Test(Test test)
+        
         {
-            string jsonFile = string.Empty;
+            if (!_configurationService.CheckProjectDirectories())
+            {
+                throw new DirectoryNotFoundException("Project not found. Use 'ntp init' to create a new project or check for the right project location");
+            }
+
+            string fileData = string.Empty;
 
             // Loading json arguments from location.
-            using (var reader = new StreamReader(test.Arguments))
+            using (var reader = new StreamReader($@"{_currentExecutionDirectory}\config.json"))
             {
-                jsonFile = reader.ReadToEnd();
+                fileData = reader.ReadToEnd();
             }
+
+            // deserializing json
+            dynamic fileDataDeserilized = JsonConvert.DeserializeObject<dynamic>(fileData);
+            var testMethods = fileDataDeserilized.methods;
 
             // Loading Assembly
             Assembly assemblyToTest = Assembly.LoadFrom($@"{_currentExecutionDirectory}\dlls\{test.Dll}");
 
-            // Find method matches
-            IList<MethodInfo> matchedMethods = _reflectionService.FindMethodInAssembly(assemblyToTest, test.Method);
+            // Passing through all test methods on the config file
+            foreach (var testMethod in testMethods)
+            {
+                try
+                {
+                    var matchedMethods = _reflectionService.MatchMethodsInAssebly(assemblyToTest, (string)testMethod["name"]);
+                    var methodExecutable = _reflectionService.GetCorrectMethod(matchedMethods, testMethod["arguments"]);
+                    var result = _reflectionService.ExecuteMethod(methodExecutable.Item1, methodExecutable.Item3, methodExecutable.Item2);
 
-            // deserializing json
-            var converter = new ExpandoObjectConverter();
-            dynamic deserializedParams = JsonConvert.DeserializeObject<ExpandoObject>(jsonFile, converter);
-            _reflectionService.GetCorrectMethod(matchedMethods, deserializedParams);
+                    // TODO change this to something less hardcoded perhaps using enums a model class to deine test types
+                    if (testMethod["testType"] == "equals")
+                    {
+                        Assert.Equal(testMethod["result"], result);
+                    }
+
+                    if (testMethod["testType"] == "assert")
+                    {
+                        Assert.True(result);
+                    }
+
+                    ConsolePrompt.WriteToConsole($@"Test passed for method: {testMethod["name"]}, OK", ConsoleColor.Green);
+                }
+                catch (TrueException ex)
+                {
+                    ConsolePrompt.WriteToConsole($@"Test failed for method: {testMethod["name"]}, {ex.Message}", ConsoleColor.Red);
+                } 
+                catch (EqualException ex)
+                {
+                    ConsolePrompt.WriteToConsole($@"Test failed for method: {testMethod["name"]}, {ex.Message}", ConsoleColor.Red);
+                }
+            }
         }
     }
 }

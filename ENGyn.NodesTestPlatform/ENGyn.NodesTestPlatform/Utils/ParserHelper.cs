@@ -1,121 +1,126 @@
-﻿using System;
-using System.ComponentModel;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Reflection;
 
 namespace ENGyn.NodesTestPlatform.Utils
 {
     public static class ParserHelper
     {
         /// <summary>
-        /// Converts a srting to any data type of the dest parameter
+        /// Converts a JToken parameter to any other primitive type given a Type parameterType
         /// </summary>
-        /// <typeparam name="T">Generic Datatype</typeparam>
-        /// <param name="src">source string</param>
-        /// <param name="dest">destiny param where datatype will be taken. It can be any value.</param>
-        /// <returns></returns>
-        public static T ConvertTo<T>(this string src, T dest)
+        /// <param name="parameter">Item to be parsed (Jtoken)</param>
+        /// <param name="parameterType">Parameter type to be converted</param>
+        /// <returns>object with the JToken value converted</returns>
+        /// <exception cref="InvalidCastException">Thrown when a invalid conversion is performed</exception>
+        public static object ParseParameter(JToken parameter, Type parameterType)
         {
-            if (src is T variable) return variable;
+            var requiredTypeCode = Type.GetTypeCode(parameterType);
+            object result = null;
 
             try
             {
-                //Handling Nullable types i.e, int?, double?, bool? .. etc
-                if (Nullable.GetUnderlyingType(typeof(T)) != null)
+                switch (requiredTypeCode)
                 {
-                    return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(src);
+                    case TypeCode.Object:
+                        result = parameter.Value<string>();
+                        break;
+
+                    case TypeCode.String:
+                        result = parameter.Value<string>();
+                        break;
+
+                    case TypeCode.Char:
+                        result = parameter.Value<char>();
+                        break;
+
+                    case TypeCode.Boolean:
+                        result = parameter.Value<bool>();
+                        break;
+
+                    case TypeCode.DateTime:
+                        result = parameter.Value<DateTime>();
+                        break;
+
+                    case TypeCode.Int16:
+                        result = parameter.Value<short>();
+                        break;
+
+                    case TypeCode.Int32:
+                        result = parameter.Value<int>();
+                        break;
+
+                    case TypeCode.Int64:
+                        result = parameter.Value<long>();
+                        break;
+
+                    case TypeCode.Single:
+                        result = parameter.Value<float>();
+                        break;
+
+                    case TypeCode.Double:
+                        result = parameter.Value<double>();
+                        break;
+
+                    case TypeCode.Byte:
+                        result = parameter.Value<byte>();
+                        break;
+
+                    default:
+                        result = parameter.Value<object>();
+                        break;
                 }
 
-                return (T)Convert.ChangeType(src, typeof(T));
+                return result;
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return default(T);
+                throw new InvalidCastException("A error occured during parameter conversion process.", ex);                
             }
+
         }
 
         /// <summary>
-        /// Converts a string input to any other primitive type
+        /// Converts a newtonsoft's JArray of parameters to an IList that contains all the parameters parsed to native types 
+        /// based on what currenly have on the method signature
         /// </summary>
-        /// <param name="requiredType">Destinaion Type</param>
-        /// <param name="inputvalue">String input value</param>
-        /// <returns>String value parsed to destiny type</returns>
-        public static object ParseType(Type requiredType, string inputvalue)
+        /// <param name="jsonParameters">JArray of parameters</param>
+        /// <param name="parameters">Parameter info array that contains the types of the method signature</param>
+        /// <returns>A IList that contains all the parsed parameters</returns>
+        public static IList ConvertParametersToSignatureTypes(JArray jsonParameters, ParameterInfo[] parameters = null)
         {
-            var requiredTypeCode = Type.GetTypeCode(requiredType);
-            object result = null;
-            bool parseStatus = true;
+            IList convertedParameters = new ArrayList();
 
-            switch(requiredTypeCode)
+            // When an array is given we don't have access to parameter types so by default everything is converted to object
+            if (parameters.Equals(null))
             {
-                case TypeCode.String:
-                    result = inputvalue;
-                    break;
-                        
-                case TypeCode.Char:
-                    char charResult;
-                    parseStatus = char.TryParse(inputvalue, out charResult);
-                    result = charResult;
-                    break;
-
-                case TypeCode.Boolean:
-                    bool boolResult;
-                    parseStatus = bool.TryParse(inputvalue, out boolResult);
-                    result = boolResult;
-                    break;
-
-                case TypeCode.DateTime:
-                    DateTime dateResult;
-                    parseStatus = DateTime.TryParse(inputvalue, out dateResult);
-                    result = dateResult;
-                    break;
-
-                case TypeCode.Int16:
-                    short integer16;
-                    parseStatus = short.TryParse(inputvalue, out integer16);
-                    result = integer16;
-                    break;
-
-                case TypeCode.Int32:
-                    int integer32;
-                    parseStatus = int.TryParse(inputvalue, out integer32);
-                    result = integer32;
-                    break;
-
-                case TypeCode.Int64:
-                    long integer64;
-                    parseStatus = long.TryParse(inputvalue, out integer64);
-                    result = integer64;
-                    break;
-
-                case TypeCode.Single:
-                    float floatResult;
-                    parseStatus = float.TryParse(inputvalue, out floatResult);
-                    result = floatResult;
-                    break;
-
-                case TypeCode.Double:
-                    double doubleResult;
-                    parseStatus = double.TryParse(inputvalue, out doubleResult);
-                    result = doubleResult;
-                    break;
-
-                case TypeCode.Byte:
-                    byte byteResult;
-                    parseStatus = byte.TryParse(inputvalue, out byteResult);
-                    result = byteResult;
-                    break;
-
-                default:
-                    parseStatus = false;
-                    break;
+                foreach (var item in jsonParameters)
+                {
+                    var parsedParameter = ParseParameter(item, typeof(object));
+                    convertedParameters.Add(parsedParameter);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    // This condition is true when an array is given as argument
+                    if (jsonParameters[i] is JArray)
+                    {
+                        var parsedParameter = ConvertParametersToSignatureTypes((JArray)jsonParameters[i]);
+                        convertedParameters.Add(parsedParameter);
+                    } 
+                    else
+                    {
+                        var parsedParameter = ParseParameter(jsonParameters[i], parameters[i].ParameterType);
+                        convertedParameters.Add(parsedParameter);
+                    }
+                }
             }
 
-            if (!parseStatus)
-            {
-                string errorMessage = string.Format("Argument type {0} cannot be parsed to {1}", inputvalue.GetType().Name, requiredType.Name);
-                throw new InvalidCastException(errorMessage);
-            }
-
-            return result;
+            return convertedParameters;
         }
     }
 }

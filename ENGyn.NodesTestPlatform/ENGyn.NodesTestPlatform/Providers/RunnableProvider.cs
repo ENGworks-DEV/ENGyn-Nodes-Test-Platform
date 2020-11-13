@@ -30,8 +30,7 @@ namespace ENGyn.NodesTestPlatform.Providers
             try
             {
                 Parser.Default.ParseArguments(args, _CommandVerbsList.ToArray())
-                    .WithParsed(Execute)
-                    .WithNotParsed(Errors);
+                    .WithParsed(Execute);
             }
             catch (ArgumentException ex)
             {
@@ -41,15 +40,6 @@ namespace ENGyn.NodesTestPlatform.Providers
             {
                 ConsolePrompt.WriteToConsole(ex.Message, ConsoleColor.Yellow);
             }
-        }
-
-        /// <summary>
-        /// Handle exception if command parsing goes wrong or if there missing flags
-        /// </summary>
-        /// <param name="error"></param>
-        public void Errors(object error)
-        {
-            // TODO Error prompt
         }
 
         /// <summary>
